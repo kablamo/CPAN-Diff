@@ -1,4 +1,4 @@
-name = "CPAN-Compare"
+name = "CPAN-Diff"
 badges = ["travis"]
 authority="cpan:KABLAMO"
 module_maker="ModuleBuild"
