@@ -10,7 +10,7 @@ use Parse::CPAN::Packages::Fast;
 use version;
 use CPAN::Diff::Module;
 
-our $VERSION = "0.01";
+our $VERSION = "0.02";
 
 has mirror          => (is => 'ro', builder => 1);
 has exclude_core    => (is => 'rw');

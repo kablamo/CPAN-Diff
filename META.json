@@ -72,7 +72,7 @@
          "web" : "https://github.com/kablamo/CPAN-Diff"
       }
    },
-   "version" : "0.01",
+   "version" : "0.02",
    "x_authority" : "cpan:KABLAMO",
    "x_serialization_backend" : "JSON::PP version 2.27203"
 }
