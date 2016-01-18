@@ -166,22 +166,22 @@ CPAN::Diff - Compare local Perl packages/versions with a CPAN
 
     use CPAN::Diff;
 
-    # all params are optional
-    # mirror defaults to http://cpan.org
+    # All params are optional
+    # Mirror defaults to http://cpan.org
     my $diff = CPAN::Diff->new(
-        mirror         => 'https://darkpan.mycompany.com'
+        mirror         => 'https://darkpan.mycompany.com',
         local_lib      => 'local',
         self_contained => 0,
         exclude_core   => 1,
     );
 
-    # local modules which are not in your darkpan
-    # returns an arrayref of hashes
+    # Local modules not in your darkpan.
+    # Returns an array of CPAN::Diff::Module objects.
     my $extra = $diff->extra_modules;  
     printf "%-40s: %10s\n", $_->name, $_->local_version for @$extra;
 
-    # local modules which have different versions than your darkpan
-    # returns an arrayref of hashes
+    # Local modules which are older than the ones in your darkpan.
+    # Returns an array of CPAN::Diff::Module objects.
     my $older = $diff->older_modules; 
     printf "%-40s: %10s %10s\n",
         $_->name,
@@ -190,8 +190,8 @@ CPAN::Diff - Compare local Perl packages/versions with a CPAN
         $_->cpan_dist->pathname
             for @$older;
 
-    # local modules which have different versions than your darkpan
-    # returns an arrayref of hashes
+    # Local modules which are newer than the ones in your darkpan.
+    # Returns an array of CPAN::Diff::Module objects.
     my $newer = $diff->newer_modules; 
     printf "%-40s: %10s\n", $_->name, $_->local_version for @$newer;
 

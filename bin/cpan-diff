@@ -103,23 +103,19 @@ cpan-diff - Compare local Perl modules with those available on a CPAN
     Acme::What
 
     $ cpan-diff older --verbose
-    Acme::LookOfDisapproval        0.005   0.006   ETHER/Acme-LookOfDisapproval-0.006
-    Acme::What                     0.004   0.005   T/TO/TOBYINK/Acme-What-0.005.tar.gz
+    Acme::LookOfDisapproval        0.005   0.006 ETHER/Acme-LookOfDisapproval-0.006
+    Acme::What                     0.004   0.005 T/TO/TOBYINK/Acme-What-0.005.tar.gz
 
     # Find local modules which are older than the ones in your company darkpan.
     $ cpan-diff older --verbose --mirror https://darkpan.yourcompany.cm
-    Acme::LookOfDisapproval        0.005   0.006   ETHER/Acme-LookOfDisapproval-0.006
-    Acme::What                     0.004   0.005   T/TO/TOBYINK/Acme-What-0.005.tar.gz
+    Acme::LookOfDisapproval        0.005   0.006 ETHER/Acme-LookOfDisapproval-0.006
+    Acme::What                     0.004   0.005 T/TO/TOBYINK/Acme-What-0.005.tar.gz
 
     # Find local modules which are newer than the ones in your darkpan.  
     $ cpan-diff newer --mirror https://darkpan.yourcompany.com
 
     # Find local modules which are 'extra' -- ie don't exist in your darkpan.
     $ cpan-diff extra --mirror https://darkpan.yourcompany.com
-
-    # Find local modules which are 'missing' -- ie they are in your darkpan but
-    # don't exist locally
-    $ cpan-diff missing --mirror https://darkpan.yourcompany.com
 
 =head1 DESCRIPTION
 
