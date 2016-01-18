@@ -24,53 +24,39 @@ main();
 
 sub main {
     my $diff = CPAN::Diff->new(%options);
+    my $verbose = $options{verbose};
 
-    print_extra($diff, $options{verbose}) if $ARGV[0] eq 'extra';
-    print_newer($diff, $options{verbose}) if $ARGV[0] eq 'newer';
-    print_older($diff, $options{verbose}) if $ARGV[0] eq 'older';
+    print_stuff($diff->extra_modules, $verbose) if $ARGV[0] eq 'extra';
+    print_more( $diff->newer_modules, $verbose) if $ARGV[0] eq 'newer';
+    print_more( $diff->older_modules, $verbose) if $ARGV[0] eq 'older';
 }
  
-sub print_extra {
-    my ($diff, $verbose) = @_;
+sub print_stuff {
+    my ($modules, $verbose) = @_;
     if ($verbose) {
-        print "$_->{name}\n" for @{ $diff->extra_modules };
-    }
-    else {
         printf "%-45s %15s %-20s\n",
-            $_->{name},
-            $_->{local_version},
-            $_->{distribution}
-            for @{ $diff->extra_modules };
+            $_->name,
+            $_->local_version,
+            $_->cpan_dist->pathname,
+                for @$modules;
+    }
+    else {
+        print $_->name . "\n" for @$modules;
     }
 }
 
-sub print_older {
-    my ($diff, $verbose) = @_;
+sub print_more {
+    my ($modules, $verbose) = @_;
     if ($verbose) {
-        print "$_->{name}\n" for @{ $diff->extra_modules };
+        printf "%-45s %15s %15s %-20s\n",
+            $_->name,
+            $_->local_version,
+            $_->cpan_version,
+            $_->cpan_dist->pathname
+                for @$modules;
     }
     else {
-        printf "%-45s %15s %15s %-20s\n",
-            $_->{name},
-            $_->{local_version},
-            $_->{cpan_version},
-            $_->{distribution}
-            for @{ $diff->older_modules };
-    }
-}
-
-sub print_newer {
-    my ($diff, $verbose) = @_;
-    if ($verbose) {
-        print "$_->{name}\n" for @{ $diff->extra_modules };
-    }
-    else {
-        printf "%-45s %15s %15s %-20s\n",
-            $_->{name},
-            $_->{local_version},
-            $_->{cpan_version},
-            $_->{distribution}
-            for @{ $diff->newer_modules };
+        print $_->name . "\n" for @$modules;
     }
 }
 

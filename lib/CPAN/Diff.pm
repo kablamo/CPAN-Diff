@@ -8,21 +8,22 @@ use Module::Extract::Namespaces;
 use Module::Metadata;
 use Parse::CPAN::Packages::Fast;
 use version;
+use CPAN::Diff::Module;
 
-our $VERSION = "0.03";
+our $VERSION = "0.01";
 
-has mirror               => (is => 'ro', builder => 1);
-has exclude_core         => (is => 'rw');
-has local_lib            => (is => 'rw');
-has self_contained       => (is => 'rw');
+has mirror          => (is => 'ro', builder => 1);
+has exclude_core    => (is => 'rw');
+has local_lib       => (is => 'rw');
+has self_contained  => (is => 'rw');
 
-has extra_modules        => (is => 'rw', lazy => 1, builder => 1);
-has newer_modules        => (is => 'rw', lazy => 1, builder => 1);
-has older_modules        => (is => 'rw', lazy => 1, builder => 1);
+has extra_modules   => (is => 'rw', lazy => 1, builder => 1);
+has newer_modules   => (is => 'rw', lazy => 1, builder => 1);
+has older_modules   => (is => 'rw', lazy => 1, builder => 1);
 
-has core_modules         => (is => 'rw', lazy => 1, builder => 1);
-has tmp_dir              => (is => 'rw', builder => 1);
-has module_cache         => (is => 'rw', lazy => 1, builder => 1);
+has core_modules    => (is => 'rw', lazy => 1, builder => 1);
+has tmp_dir         => (is => 'rw', builder => 1);
+has cache           => (is => 'rw', lazy => 1, builder => 1);
 
 sub _build_mirror       { "http://cpan.org" };
 sub _build_tmp_dir      { "/tmp" };
@@ -32,41 +33,43 @@ sub _build_core_modules {
     $Module::CoreList::version{$]};
 }
 
-sub _build_extra_modules { shift->module_cache->{extra} }
-sub _build_newer_modules { shift->module_cache->{newer} }
-sub _build_older_modules { shift->module_cache->{older} }
+sub _build_extra_modules { shift->cache->{extra} }
+sub _build_newer_modules { shift->cache->{newer} }
+sub _build_older_modules { shift->cache->{older} }
 
-sub _build_module_cache  {
+sub case_insensitive { lc($a) cmp lc($b) }
+
+sub _build_cache  {
     my ($self)     = @_;
     my @inc        = $self->make_inc;
     my $cpan       = $self->cpan;
     my @local_pkgs = $self->get_local_pkgs(@inc);
-print "runnnnnnnnnnnnnn\n";
+    my (@extra, @newer, @older);
 
-    for my $local_pkg (sort @local_pkgs) {
+    for my $local_pkg (sort case_insensitive @local_pkgs) {
         my $pkg = $cpan->package($local_pkg);
         my $local_version = $self->local_version_for($local_pkg, \@inc) || next;
         next unless $local_version =~ /[0-9]/;
         next if $self->core_modules && $self->core_modules->{$local_pkg};
-        my $pkg_metadata  = {
+        my $metadata = CPAN::Diff::Module->new(
             name          => $local_pkg,
             local_version => $local_version,
             cpan_version  => $pkg ? $pkg->version : undef,
-            dist          => $pkg ? $pkg->distribution : undef,
-        };
+            cpan_dist     => $pkg ? $pkg->distribution : undef,
+        );
 
         if (!$pkg) {
-            push @{ $self->extra_modules }, $pkg_metadata;
+            push @extra, $metadata;
         }
         else {
             my $result = $self->compare_version($local_version, $pkg->version);
             next if $result == 0;
-            push @{ $self->newer_modules }, $pkg_metadata if $result == 1;
-            push @{ $self->older_modules }, $pkg_metadata if $result == -1;
+            push @newer, $metadata if $result == 1;
+            push @older, $metadata if $result == -1;
         }
     }
 
-    return $self;
+    return { extra => \@extra, newer => \@newer, older => \@older };
 }
 
 sub cpan {
@@ -168,26 +171,29 @@ CPAN::Diff - Compare local Perl packages/versions with a CPAN
     my $diff = CPAN::Diff->new(
         mirror         => 'https://darkpan.mycompany.com'
         local_lib      => 'local',
-        self_contained => 1,
+        self_contained => 0,
         exclude_core   => 1,
     );
 
     # local modules which are not in your darkpan
     # returns an arrayref of hashes
     my $extra = $diff->extra_modules;  
-    print "$_->{name}: $_->{version}\n" for @$extra;
+    printf "%-40s: %10s\n", $_->name, $_->local_version for @$extra;
 
     # local modules which have different versions than your darkpan
     # returns an arrayref of hashes
     my $older = $diff->older_modules; 
-    print "$_->{name}: $_->{cpan_version}\t$_->{local_version}\n"
-        for @$older;
+    printf "%-40s: %10s %10s\n",
+        $_->name,
+        $_->local_version,
+        $_->cpan_version,
+        $_->cpan_dist->pathname
+            for @$older;
 
     # local modules which have different versions than your darkpan
     # returns an arrayref of hashes
     my $newer = $diff->newer_modules; 
-    print "$_->{name}: $_->{cpan_version}\t$_->{local_version}\n"
-        for @$newer;
+    printf "%-40s: %10s\n", $_->name, $_->local_version for @$newer;
 
 =head1 DESCRIPTION
 
